@@ -22,14 +22,14 @@ class IncomingMessage(models.Model):
     sender = models.CharField(max_length=255, null=True, blank=True)
     recipient = models.CharField(max_length=255, null=True, blank=True)
     text = models.TextField(null=True, blank=True)
-    media_file = models.TextField(null=True, blank=True)
+    media_file = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         verbose_name = "Incoming Message"
         verbose_name_plural = "Incoming Messages"
 
     def __str__(self):
-        return self.subject
+        return self.sender
 
 
 class OutgoingMessage(models.Model):

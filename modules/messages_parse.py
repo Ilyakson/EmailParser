@@ -18,7 +18,7 @@ class OutlookScraper:
         self.driver.get("https://outlook.live.com/")
 
         login_link_element = WebDriverWait(self.driver, 15).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "auxiliary-actions"))
+            EC.element_to_be_clickable((By.CLASS_NAME, "auxiliary-actions"))
         )
         login_link = login_link_element.find_element(
             By.CLASS_NAME, "internal.sign-in-link"
@@ -26,7 +26,7 @@ class OutlookScraper:
         login_link.click()
 
         input_login = WebDriverWait(self.driver, 15).until(
-            EC.presence_of_element_located((By.ID, "i0116"))
+            EC.element_to_be_clickable((By.ID, "i0116"))
         )
         input_login.send_keys(self.login)
 
@@ -36,7 +36,7 @@ class OutlookScraper:
         button_submit.click()
 
         input_password = WebDriverWait(self.driver, 15).until(
-            EC.presence_of_element_located((By.ID, "i0118"))
+            EC.element_to_be_clickable((By.ID, "i0118"))
         )
         input_password.send_keys(self.password)
 
@@ -46,7 +46,7 @@ class OutlookScraper:
         button_submit.click()
 
         button = WebDriverWait(self.driver, 15).until(
-            EC.presence_of_element_located((By.ID, "idBtn_Back"))
+            EC.element_to_be_clickable((By.ID, "idBtn_Back"))
         )
         button.click()
 
@@ -66,7 +66,6 @@ class IncomingMessageScraper:
             )
             for message in messages:
                 message.click()
-
                 try:
                     letter_subject = (WebDriverWait(self.driver, 15).until(
                         EC.presence_of_element_located((By.CLASS_NAME, "full.UAxMv"))
@@ -99,12 +98,25 @@ class IncomingMessageScraper:
                 except NoSuchElementException:
                     text = None
 
-                try:
-                    media_file = element_message.find_element(
-                        By.CLASS_NAME, "E_kRz"
-                    ).text
-                except NoSuchElementException:
-                    media_file = None
+                file_path = None
+                if self.driver.find_element(By.CLASS_NAME, "l8Tnu.T3idP").text:
+                    try:
+                        context_menu_button = WebDriverWait(element_message, 5).until(
+                            EC.element_to_be_clickable((By.CLASS_NAME, "o4euS"))
+                        )
+                        context_menu_button.click()
+                        download_button = WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located(
+                                (
+                                    By.CSS_SELECTOR, '.ms-ContextualMenu-link[name="Скачать"]'
+                                )
+                            )
+                        )
+                        file_name = self.driver.find_element(By.CLASS_NAME, "VlyYV.PQeLQ.QEiYT")
+                        file_path = "C:/Users/SCHOO/Downloads/" + file_name.text
+                        download_button.click()
+                    except NoSuchElementException:
+                        pass
 
                 IncomingMessage.objects.create(
                     email=acc,
@@ -112,7 +124,7 @@ class IncomingMessageScraper:
                     sender=sender,
                     recipient=recipient,
                     text=text,
-                    media_file=media_file,
+                    media_file=file_path,
                 )
 
         except WebDriverException as e:
