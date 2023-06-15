@@ -184,12 +184,25 @@ class OutgoingMessageScraper:
                 except NoSuchElementException:
                     text = None
 
-                try:
-                    media_file = element_message.find_element(
-                        By.CLASS_NAME, "E_kRz"
-                    ).text
-                except NoSuchElementException:
-                    media_file = None
+                file_path = None
+                if self.driver.find_element(By.CLASS_NAME, "l8Tnu.T3idP").text:
+                    try:
+                        context_menu_button = WebDriverWait(element_message, 5).until(
+                            EC.element_to_be_clickable((By.CLASS_NAME, "o4euS"))
+                        )
+                        context_menu_button.click()
+                        download_button = WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located(
+                                (
+                                    By.CSS_SELECTOR, '.ms-ContextualMenu-link[name="Скачать"]'
+                                )
+                            )
+                        )
+                        file_name = self.driver.find_element(By.CLASS_NAME, "VlyYV.PQeLQ.QEiYT")
+                        file_path = "C:/Users/SCHOO/Downloads/" + file_name.text
+                        download_button.click()
+                    except NoSuchElementException:
+                        pass
 
                 OutgoingMessage.objects.create(
                     email=acc,
@@ -197,7 +210,7 @@ class OutgoingMessageScraper:
                     sender=sender,
                     recipient=recipient,
                     text=text,
-                    media_file=media_file,
+                    media_file=file_path,
                 )
 
         except WebDriverException as e:
